@@ -45,6 +45,12 @@ video_put_args.add_argument ("name", type = str, help = "Name of the video is re
 video_put_args.add_argument ("views", type = int, help = "Views of the video", required = True)
 video_put_args.add_argument ("likes", type = int, help = "Likes of the video", required = True)
 
+# for patch
+video_update_args = reqparse.RequestParser ()
+video_update_args.add_argument ("name", type = str, help = "Name of the video is required", required = False)
+video_update_args.add_argument ("views", type = int, help = "Views of the video", required = False)
+video_update_args.add_argument ("likes", type = int, help = "Likes of the video", required = False)
+
 # how serialized
 # db model to result model something
 resource_fields = {
@@ -96,6 +102,28 @@ class Video (Resource):
 		db.session.add (video)
 		db.session.commit ()
 		return video, 201
+
+	# update
+	# prob not best method
+	@marshal_with (resource_fields)
+	def patch (self, video_id):
+		args = video_update_args.parse_args ()
+		result = VideoModel.query.filter_by (id = video_id).first ()
+
+		if not result:
+			abort (404, message = "Video doesnt exist, cannot update")
+
+		# by default we get none
+		if args ['name']:
+			result.name = args ['name']
+		if args ['views']:
+			result.views = args ['views']
+		if args ['likes']:
+			result.likes = args ['likes']
+
+		db.session.commit ()
+
+		return result
 
 	# the names is similar to request becuase common practice
 	def delete (self, video_id):
