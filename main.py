@@ -1,5 +1,5 @@
 from flask import Flask;
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource, reqparse, abort
 
 # init api
 app = Flask (__name__)
@@ -30,8 +30,17 @@ video_put_args.add_argument ("likes", type = int, help = "Likes of the video", r
 
 videos = {}
 
+def abort_if_video_id_doesnt_exit (video_id):
+	if video_id not in videos:
+		abort(404, message = "Video id is not valid...")
+
+def abort_if_video_exists (video_id):
+	if video_id in videos:
+		abort (409, message = "Video already exits with that ID...")
+
 class Video (Resource):
 	def get (self, video_id):
+		abort_if_video_id_doesnt_exit (video_id)
 		return videos [video_id]	
 
 	def put (self, video_id):
@@ -39,8 +48,19 @@ class Video (Resource):
 		# bad method for put
 		#print (request.form ["likes"])
 		#print (request.form)
+		abort_if_video_exists (video_id)
 		args = video_put_args.parse_args ()
-		return {video_id : args}	
+		videos [video_id] = args;
+		# , for return code, by default is 200
+		return videos [video_id], 201	
+
+	# the names is similar to request becuase common practice
+	def delete (self, video_id):
+		abort_if_video_id_doesnt_exit (video_id)
+		del videos [video_id]
+		# 204 means deleted successfull
+		return '', 204
+
 
 api.add_resource (Video, "/video/<int:video_id>")		
 
