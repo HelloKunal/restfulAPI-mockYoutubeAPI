@@ -10,12 +10,9 @@ data = [{"likes" : 10, "name": "Tim", "views": 2000},
 for i in range (len (data)):
 	response = requests.put (BASE + "video/" + str (i), data [i])
 	print (response.json())
-	print (str (i))
 
 # put gives data in form of json
 
-response = requests.delete (BASE + "video/0")
-print (response)
 id = input ()
 response = requests.get (BASE + "video/" + id)
 print (response.json())
